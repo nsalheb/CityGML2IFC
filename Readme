@@ -1,5 +1,3 @@
-Instructions 
-
 how to use program
 
 1-	Make sure that python 3 is installed. 
@@ -12,3 +10,7 @@ b.	pyproj
 6-	Compile (Run) the program CityGML2IFC.py. 
 7-	A file called Result.ifc will appear. This file is the result of the conversion. 
 8-	Check Result.ifc on the BIM software of your choice. 
+
+Participation 
+It is made with the help of Kavisha Kumar https://3d.bk.tudelft.nl/kavisha/.  
+Kavisha’s GitHub  https://github.com/kkimmy. 
