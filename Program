@@ -1,7 +1,7 @@
-** CityGML2IFC **
+Instructions 
 
-** Instructions **
-5.4	how to use program
+how to use program
+
 1-	Make sure that python 3 is installed. 
 2-	Make sure the following modules are installed: 
 a.	numpy 
