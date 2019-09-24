@@ -1,16 +1,32 @@
-how to use program
-
-1-	Make sure that python 3 is installed. 
-2-	Make sure the following modules are installed: 
-a.	numpy 
-b.	pyproj 
-3-	Download the program CityGML2IFC.py
-4-	the program will convert a source file in CityGML to destination file in IFC. 
-5-	Change the name of your source CityGML file to: “Source.gml”  
-6-	Compile (Run) the program CityGML2IFC.py. 
-7-	A file called Result.ifc will appear. This file is the result of the conversion. 
-8-	Check Result.ifc on the BIM software of your choice. 
+Program Description 
+The main implementation part consists of a program named “CityGML2IFC.py” it is a script file written in Python 3. 
+When compiled the program will convert a source file in CityGML to a destination file in IFC.
+License 
+and the program is licensed under General Public License v3.0
 
 Participation 
 It is made with the help of Kavisha Kumar https://3d.bk.tudelft.nl/kavisha/.  
 Kavisha’s GitHub  https://github.com/kkimmy. 
+
+Used Moules 
+The following modules are imported and used in the program; these modules should be preinstalled before running the program: 
+xml.etree.ElementTree    _ Is used here for parsing the XML data 
+os _    To interact with the operating system where the computer is running for example: reading time and file bath. 
+time_ To read the current time and stored in the created IFC files
+itertools _     Is used to create a hashtaged unique id with an incremental value starting from a given value
+sys    _ Is used to allow files to be written on the hard disk 
+numpy _    To perform mathematical operation such as finding minimum value or subtract arrays 
+uuid_ To automatically generate unique IDs 
+pyproj _    To convert the resulting files projection 
+
+How to use program
+1-    Make sure that python 3 is installed. 
+2-    Make sure all the necessary modules are installed, particularly: 
+a.    numpy 
+b.    pyproj 
+3-    Download the program CityGML2IFC.py
+4-    the program will convert a source file in CityGML to destination file in IFC. 
+5-    Change the name of your source CityGML file to: “Source.gml”  
+6-    Compile (Run) the program CityGML2IFC.py. 
+7-    A file called Result.ifc will appear. This file is the result of the conversion. 
+8-    Check Result.ifc on the BIM software of your choice. 
