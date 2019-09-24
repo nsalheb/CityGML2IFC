@@ -400,9 +400,9 @@ def CityGML2IFC(path,dst):
     FILE.close()
 
 #path="complete_city_mpdel_with_pipes_reprojected.gml"
-#path="Source.gml"
+path="Source.gml"
 #path="new.gml"
-path="1.gml"
+#path="1.gml"
 #path="complete_city_mpdel_with_pipes_reprojected.gml"
 #path="small_pipe_reprojected.gml"
 #path="new_ground_solid_removed.gml"
