@@ -213,11 +213,11 @@ DATA;
     FILE.write(text)
 
 
-    for building in buildings:
+    for building_int,building in enumerate(buildings):
         ifcbuildingid = "#" + str(next(counter))
 
-        text = "\n{id} = IFCBUILDING ({guid}, #102, 'bldg:Building', $, $, $, $, $, $, $, $, $);"
-        text = text.format(id = ifcbuildingid,guid = guid())
+        text = "\n{id} = IFCBUILDING ({guid}, #102, 'Building {i}', $, $, $, $, $, $, $, $, $);"
+        text = text.format(id = ifcbuildingid,guid = guid(),i = building_int)
         FILE.write(text)
 
         ifcsurfaceid_list=[]
@@ -343,30 +343,30 @@ DATA;
                     roof_id_list.append(ifcsurfaceid)
 
 
-    if (ifcsurfaceid_list):
+        if (ifcsurfaceid_list):
 
-        # print("#"+str(next(counter))," = IFCRELAGGREGATES (",guid(),", #102, $, $, ",ifcprojectid,", (", ifcbuildingid,"));")
-        # print("#"+str(next(counter))," = IFCRELCONTAINEDINSPATIALSTRUCTURE (",guid(),", #102, $, $, (", end=' ')
-        loop_string = ""
-        for Element_id in ifcsurfaceid_list:
-            loop_string += (str((Element_id)).strip("''"))
-            loop_string += (",")
-            loop_string2 = loop_string[:-1]
-        # print(loop_string2, "),",ifcbuildingid,");")
+            # print("#"+str(next(counter))," = IFCRELAGGREGATES (",guid(),", #102, $, $, ",ifcprojectid,", (", ifcbuildingid,"));")
+            # print("#"+str(next(counter))," = IFCRELCONTAINEDINSPATIALSTRUCTURE (",guid(),", #102, $, $, (", end=' ')
+            loop_string = ""
+            for Element_id in ifcsurfaceid_list:
+                loop_string += (str((Element_id)).strip("''"))
+                loop_string += (",")
+                loop_string2 = loop_string[:-1]
+            # print(loop_string2, "),",ifcbuildingid,");")
 
-        text = "\n#{id_1} = IFCRELAGGREGATES ( {guid_1},#102, $, $, {proj_id}, ({building_id}));"
-        text += "\n#{id_2} = IFCRELCONTAINEDINSPATIALSTRUCTURE ('{guid_2}', #102, $, $, ({lstring}), {building_id};)"
-        text = text.format(
-            id_1 = next(counter),
-            id_2 = next(counter),
-            guid_1 = guid(),
-            guid_2 = guid(),
-            proj_id = ifcprojectid,
-            lstring = loop_string2,
-            building_id = ifcbuildingid
-        )
-        FILE.write(text)
-#Added material when needed by commenting the below back in
+            text = "\n#{id_1} = IFCRELAGGREGATES ( {guid_1},#102, $, $, {proj_id}, ({building_id}));"
+            text += "\n#{id_2} = IFCRELCONTAINEDINSPATIALSTRUCTURE ({guid_2}, #102, $, $, ({lstring}), {building_id});"
+            text = text.format(
+                id_1 = next(counter),
+                id_2 = next(counter),
+                guid_1 = guid(),
+                guid_2 = guid(),
+                proj_id = ifcprojectid,
+                lstring = loop_string2,
+                building_id = ifcbuildingid
+            )
+            FILE.write(text)
+    #Added material when needed by commenting the below back in
 
     #assign material #115 to all walls
     #print("#"+str(next(counter))," = IFCRELASSOCIATESMATERIAL (",guid(),",#102,$,$,(", end=' ')
