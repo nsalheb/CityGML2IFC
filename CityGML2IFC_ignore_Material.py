@@ -5,7 +5,8 @@ import itertools
 import sys
 import numpy
 import uuid
-from pyproj import Proj, transform
+from pyproj.crs import CRS
+from pyproj.transformer import Transformer
 
 def guid():
     x=str(uuid.uuid4())
@@ -68,9 +69,10 @@ def move_to_local(local_pont, l):
 
 def from_EPSG28992_TO_WGS84(x1,y1,z):
     # convert coordinates from EPSG28992 TO WGS84
-    inProj = Proj(init='epsg:28992')
-    outProj = Proj(init='epsg:4326')
-    x2,y2 = transform(inProj,outProj,x1,y1)
+    in_proj = CRS.from_epsg(28992)
+    out_proj = CRS.from_epsg(4326)
+    transformer = Transformer.from_crs(in_proj,out_proj)
+    x2,y2 = transformer.transform(x1,y1)
     return (x2,y2,z)
 
 def chunks(l, n):
@@ -141,13 +143,13 @@ def CityGML2IFC(path,dst):
     generic=[]
     other = []
     #-- Find all instances of cityObjectMember and put them in a list
-    for obj in root.getiterator('{%s}cityObjectMember'% ns_citygml):
+    for obj in root.iter('{%s}cityObjectMember'% ns_citygml):
         cityObjects.append(obj)
 
 
     for cityObject in cityObjects:
     #createa a list iof different city objects
-        for child in cityObject.getchildren():
+        for child in list(cityObject):
             if child.tag == '{%s}Building' %ns_bldg:
                 buildings.append(child)
             elif child.tag == '{%s}GenericCityObject' %ns_gen:
@@ -407,7 +409,7 @@ def CityGML2IFC(path,dst):
 #path="small_pipe_reprojected.gml"
 #path="new_ground_solid_removed.gml"
 #path="Ground.gml"
-path="B-4_21_LoD0_LoD1_LoD2.gml"
+path="Source.gml"
 dst="Result_no_material.ifc"
 
 CityGML2IFC(path,dst)
