@@ -13,7 +13,6 @@ def guid():
     newstr = x.replace("-", "")
     return ("'"+newstr[:22]+"'")
 
-
 def find_reference_point(l):
     #takes a list of lists as input
     #will return the corner point as a list(point with least x and least y and least z)
@@ -69,8 +68,8 @@ def move_to_local(local_pont, l):
 
 def from_EPSG28992_TO_WGS84(x1,y1,z):
     # convert coordinates from EPSG28992 TO WGS84
-    in_proj = CRS.from_epsg(28992)
-    out_proj = CRS.from_epsg(4326)
+    in_proj = CRS.from_epsg(4258)
+    out_proj = CRS.from_epsg(5683)
     transformer = Transformer.from_crs(in_proj,out_proj)
     x2,y2 = transformer.transform(x1,y1)
     return (x2,y2,z)
@@ -148,7 +147,7 @@ def CityGML2IFC(path,dst):
 
 
     for cityObject in cityObjects:
-    #createa a list iof different city objects
+    #createa a list of different city objects
         for child in list(cityObject):
             if child.tag == '{%s}Building' %ns_bldg:
                 buildings.append(child)
@@ -160,7 +159,7 @@ def CityGML2IFC(path,dst):
 
     i=0
     FILE = open(dst,"w")
-    sys.stdout = FILE
+    #sys.stdout = FILE
     #sys.stdout = FILE means that every print statment will be saved instead in the file
 #---------------------------------------------------------------------------------------------------------------------
     #define the ultimate reference point so that all points will have positive/small values
@@ -181,37 +180,46 @@ def CityGML2IFC(path,dst):
     ground_id_list=[]
     roof_id_list=[]
     floor_id_list=[]
-    print("\nISO-10303-21;" 
-    "\nHEADER;" 
-    "\nFILE_DESCRIPTION(('ViewDefinition[CoordinationView_V2.0]'), '2;1');"
-    "\nFILE_NAME (","'",(os.path.basename(path)),"'",",",dmys,");" 
-    "\nFILE_SCHEMA (('IFC2X3'));" 
-    "\nENDSEC;" 
-    "\n\nDATA;"
-    "\n#101 = IFCORGANIZATION ($, 'MSC_Geomatics', 'TU_Delft', $, $);" 
-    "\n#104 = IFCPERSON ($, 'Nebras_salheb', 'TU_Delft', $, $, $, $, $);" 
-    "\n#103 = IFCPERSONANDORGANIZATION (#104, #101, $);" 
-    "\n#105 = IFCAPPLICATION (#101, 'CityGML2IFC', 'CityGML2IFC', 'CityGML2IFC');" 
-    "\n#102 = IFCOWNERHISTORY (#103, #105, .READWRITE., .NOCHANGE., $, $, $, 1528899117);" 
-    "\n#109 = IFCCARTESIANPOINT ((0., 0., 0.));" 
-    "\n#110 = IFCDIRECTION ((0., 0., 1.));" 
-    "\n#111 = IFCDIRECTION ((1., 0., 0.));" 
-    "\n#108 = IFCAXIS2PLACEMENT3D (#109, #110, #111);" 
-    "\n#112 = IFCDIRECTION ((1., 0., 0.));" 
-    "\n#107 = IFCGEOMETRICREPRESENTATIONCONTEXT ($, 'Model', 3, 1.E-005, #108, #112);" 
-    "\n#114 = IFCSIUNIT (*, .LENGTHUNIT., $, .METRE.);" 
-    "\n#113 = IFCUNITASSIGNMENT ((#114));"
-    "\n#115= IFCMATERIAL('K01-1');"
-    "\n#116= IFCMATERIAL('K01-2');"
-    "\n#117= IFCMATERIAL('K01-3');"    
-    "\n#118= IFCMATERIAL('K01-4');"
-    "\n#119=IFCLOCALPLACEMENT($,#108);"
-    "\n" ,ifcprojectid, " = IFCPROJECT (",guid(),", #102, 'core:CityModel', '', $, $, $, (#107), #113);"  
-    "\n",ifcsiteid," = IFCSITE (",guid(),", #102, 'Rotterdam', 'Description of Default Site Rotterdam', 'LandUse', $, $, $, .ELEMENT.,""",max_point_wgs84,",",reference_point_wgs84,", $, $, $);")
+
+
+    text = """ISO-10303-21;
+HEADER;
+FILE_DESCRIPTION(('ViewDefinition[CoordinationView_V2.0]'), '2;1');
+FILE_NAME ('{filename}',{dmys});
+FILE_SCHEMA (('IFC2X3'));
+ENDSEC;
+DATA;
+#101 = IFCORGANIZATION ($, 'MSC_Geomatics', 'TU_Delft', $, $); 
+#104 = IFCPERSON ($, 'Nebras_salheb', 'TU_Delft', $, $, $, $, $);
+#103 = IFCPERSONANDORGANIZATION (#104, #101, $);" 
+#105 = IFCAPPLICATION (#101, 'CityGML2IFC', 'CityGML2IFC', 'CityGML2IFC');
+#102 = IFCOWNERHISTORY (#103, #105, .READWRITE., .NOCHANGE., $, $, $, 1528899117);
+#109 = IFCCARTESIANPOINT ((0., 0., 0.));
+#110 = IFCDIRECTION ((0., 0., 1.)); 
+#111 = IFCDIRECTION ((1., 0., 0.)); 
+#108 = IFCAXIS2PLACEMENT3D (#109, #110, #111);
+#112 = IFCDIRECTION ((1., 0., 0.)); 
+#107 = IFCGEOMETRICREPRESENTATIONCONTEXT ($, 'Model', 3, 1.E-005, #108, #112);
+#114 = IFCSIUNIT (*, .LENGTHUNIT., $, .METRE.); 
+#113 = IFCUNITASSIGNMENT ((#114));
+#115= IFCMATERIAL('K01-1');
+#116= IFCMATERIAL('K01-2');
+#117= IFCMATERIAL('K01-3');  
+#118= IFCMATERIAL('K01-4');
+#119=IFCLOCALPLACEMENT($,#108);
+{ifcprojectid} = IFCPROJECT ('{project_guid}', #102, 'core:CityModel', '', $, $, $, (#107), #113);
+{ifcsiteid} = IFCSITE ('{site_guid}', #102, 'Apolda', 'Glockenstadt Apolda', 'LandUse', $, $, $, .ELEMENT.,{max_point},{reference_point}, $, $, $);"""
+    text = text.format(filename= os.path.basename(path),dmys=dmys,ifcprojectid=ifcprojectid,ifcsiteid=ifcsiteid,project_guid=guid(),site_guid=guid(),max_point=max_point_wgs84,reference_point=reference_point_wgs84)
+    FILE.write(text)
+
 
     for building in buildings:
         ifcbuildingid = "#" + str(next(counter))
-        print(ifcbuildingid," = IFCBUILDING (",guid(),", #102, 'bldg:Building', $, $, $, $, $, $, $, $, $);")
+
+        text = "\n{id} = IFCBUILDING ({guid}, #102, 'bldg:Building', $, $, $, $, $, $, $, $, $);"
+        text = text.format(id = ifcbuildingid,guid = guid())
+        FILE.write(text)
+
         ifcsurfaceid_list=[]
         BoundedBy=building.findall('.//{%s}boundedBy' %ns_bldg)
         for Boundary in BoundedBy:
@@ -230,121 +238,176 @@ def CityGML2IFC(path,dst):
                 while pl<len(bounding_points):
                 #iterate over every point in the boundary and create an elemetn from this point and store the id in ifc_id_list
                     ifc_id="#"+str(next(counter))
-                    print((ifc_id)," = IFCCARTESIANPOINT ((",(str(bounding_points [pl])).strip("[]"),"));")
+
+                    text = "\n{id} = IFCCARTESIANPOINT (({points}));"
+                    text = text.format(id = ifc_id,points = str(bounding_points [pl]).strip("[]"))
+                    FILE.write(text)
+
                     ifc_id_list.append(ifc_id)
                     pl=pl+1
                 ifcpolyloopid="#"+str(next(counter))
-                print(ifcpolyloopid," = IFCPOLYLOOP ((", end=' ')
+
+
+
+
+                #print(ifcpolyloopid," = IFCPOLYLOOP ((", end=' ')
                 #note; end= is used to identify what tp print after printstatment have ended
                 loop_string = ""
                 for Element_id in ifc_id_list:
                     loop_string += (str((Element_id)).strip("''"))
                     loop_string += (",")
                     loop_string2 = loop_string[:-1]
-                print(loop_string2, "));")
-
+                #print(loop_string2, "));")
+                text = "\n{id} = IFCPOLYLOOP (({loop}));"
+                text = text.format(id = ifcpolyloopid,loop = loop_string2)
+                FILE.write(text)
                 ifcfaceouterboundid="#"+str(next(counter))
-                print(ifcfaceouterboundid," = IFCFACEOUTERBOUND (",ifcpolyloopid,", .T.);")
+                text = "\n{ifcfaceouterboundid} = IFCFACEOUTERBOUND ({ifcpolyloopid}, .T.);"
+                text = text.format(ifcfaceouterboundid=ifcfaceouterboundid,ifcpolyloopid = ifcpolyloopid)
+                FILE.write(text)
+                #print(ifcfaceouterboundid," = IFCFACEOUTERBOUND (",ifcpolyloopid,", .T.);")
 
                 ifcfaceid="#"+str(next(counter))
-                print(ifcfaceid," = IFCFACE ((",ifcfaceouterboundid,"));")
+                text = "\n{ifcfaceid} = IFCFACE (({ifcfaceouterboundid}));"
+                text = text.format(ifcfaceid=ifcfaceid,ifcfaceouterboundid=ifcfaceouterboundid)
+                FILE.write(text)
 
                 ifcopenshellid="#"+str(next(counter))
-                print(ifcopenshellid," = IFCOPENSHELL ((",ifcfaceid,"));")
+
+                text = "\n{id} = IFCOPENSHELL (({faceid}));"
+                text = text.format(id = ifcopenshellid,faceid = ifcfaceid)
+                FILE.write(text)
 
                 ifcshellbasedsurfacemodelid="#"+str(next(counter))
-                print(ifcshellbasedsurfacemodelid," = IFCSHELLBASEDSURFACEMODEL ((",ifcopenshellid,"));")
+                text = "\n{id} = IFCSHELLBASEDSURFACEMODEL (({os_id}));"
+                text = text.format(id = ifcshellbasedsurfacemodelid,os_id = ifcopenshellid)
+                FILE.write(text)
 
                 ifcshaperepresentationid="#"+str(next(counter))
-                print(ifcshaperepresentationid," = IFCSHAPEREPRESENTATION ($,'Body','SurfaceModel',(",ifcshellbasedsurfacemodelid,"));")
+                text = "\n{id} = IFCSHAPEREPRESENTATION ($,'Body','SurfaceModel',({sh_id}));"
+                text = text.format(id=ifcshaperepresentationid, sh_id=ifcshellbasedsurfacemodelid)
+                FILE.write(text)
 
                 ifcproductdefiniteshapeid="#"+str(next(counter))
-                print(ifcproductdefiniteshapeid," = IFCPRODUCTDEFINITIONSHAPE ($, $, (",ifcshaperepresentationid,"));")
+                text = "\n{id} = IFCPRODUCTDEFINITIONSHAPE ($, $, ({sh_id}));"
+                text = text.format(id=ifcproductdefiniteshapeid, sh_id=ifcshaperepresentationid)
+                FILE.write(text)
 
 
                 if(Boundary.find('{%s}GroundSurface' %ns_bldg)):
                     ifcsurfaceid="#"+str(next(counter))
-                    print(ifcsurfaceid," = IFCSLAB (",guid(),", $,'GroundSlab',' ',$,$,",ifcproductdefiniteshapeid,",$,.BASESLAB.);")
+                    text = "\n{id} = IFCSLAB({guid}, $, 'GroundSlab', ' ',$,$, {sh_id}, $, .BASESLAB.); "
+                    text = text.format(id = ifcsurfaceid,guid = guid(),sh_id = ifcproductdefiniteshapeid)
+                    FILE.write(text)
                     ifcsurfaceid_list.append(ifcsurfaceid)
                     ground_id_list.append(ifcsurfaceid)
 
                 if(Boundary.find('{%s}FloorSurface' %ns_bldg)):
                     ifcsurfaceid="#"+str(next(counter))
-                    print(ifcsurfaceid," = IFCSLAB (",guid(),", $,'GroundSlab',' ',$,$,",ifcproductdefiniteshapeid,",$,.BASESLAB.);")
+                    text = "\n{id} = IFCSLAB({guid}, $, 'GroundSlab', ' ',$,$, {sh_id}, $, .BASESLAB.); "
+                    text = text.format(id=ifcsurfaceid, guid=guid(), sh_id=ifcproductdefiniteshapeid)
+                    FILE.write(text)
                     ifcsurfaceid_list.append(ifcsurfaceid)
                     floor_id_list.append(ifcsurfaceid)
 
                 if(Boundary.find('{%s}RoofSurface' %ns_bldg)):
                     ifcsurfaceid="#"+str(next(counter))
-                    print(ifcsurfaceid," = IFCROOF (",guid(),", $,'RoofSlab',' ',$,$,",ifcproductdefiniteshapeid,",$,.ROOF.);")
+                    text = "\n{id} = IFCROOF({guid}, $, 'RoofSlab', ' ',$,$, {sh_id}, $, .ROOF.); "
+                    text = text.format(id=ifcsurfaceid, guid=guid(), sh_id=ifcproductdefiniteshapeid)
+                    FILE.write(text)
                     ifcsurfaceid_list.append(ifcsurfaceid)
                     roof_id_list.append(ifcsurfaceid)
 
                 if(Boundary.find('{%s}WallSurface' %ns_bldg)):
                     ifcsurfaceid="#"+str(next(counter))
-                    print(ifcsurfaceid," = IFCWALL (", guid(),", $,'bldg:WallSurface',' ',$,$,",ifcproductdefiniteshapeid,",$);")
+                    text = "\n{id} = IFCWALL({guid}, $, 'bldg:WallSurface', ' ',$,$, {sh_id}, $,); "
+                    text = text.format(id=ifcsurfaceid, guid=guid(), sh_id=ifcproductdefiniteshapeid)
+                    FILE.write(text)
                     ifcsurfaceid_list.append(ifcsurfaceid)
                     wall_id_list.append(ifcsurfaceid)
 
                 if(Boundary.find('{%s}InteriorWallSurface' %ns_bldg)):
                     ifcsurfaceid="#"+str(next(counter))
-                    print(ifcsurfaceid," = IFCWALL (",guid(),", $,'bldg:WallSurface',' ',$,$,",ifcproductdefiniteshapeid,",$);")
+                    text = "\n{id} = IFCWALL({guid}, $, 'bldg:WallSurface', ' ',$,$, {sh_id}, $,); "
+                    text = text.format(id=ifcsurfaceid, guid=guid(), sh_id=ifcproductdefiniteshapeid)
+                    FILE.write(text)
                     ifcsurfaceid_list.append(ifcsurfaceid)
                     wall_id_list.append(ifcsurfaceid)
 
                 if(Boundary.find('{%s}CeilingSurface' %ns_bldg)):
                     ifcsurfaceid="#"+str(next(counter))
-                    print(ifcsurfaceid," = IFCCovering (",guid(),", $,'CoveringSlab',' ',$,$,",ifcproductdefiniteshapeid,",$,$);")
+                    text = "\n{id} = IFCCOVERING ({guid}, $, 'CoveringSlab', ' ',$,$, {sh_id}, $,); "
+                    text = text.format(id=ifcsurfaceid, guid=guid(), sh_id=ifcproductdefiniteshapeid)
+                    FILE.write(text)
                     ifcsurfaceid_list.append(ifcsurfaceid)
                     roof_id_list.append(ifcsurfaceid)
 
-        if (ifcsurfaceid_list):
-            print("#"+str(next(counter))," = IFCRELAGGREGATES (",guid(),", #102, $, $, ",ifcprojectid,", (", ifcbuildingid,"));")
-            print("#"+str(next(counter))," = IFCRELCONTAINEDINSPATIALSTRUCTURE (",guid(),", #102, $, $, (", end=' ')
-            loop_string = ""
-            for Element_id in ifcsurfaceid_list:
-                loop_string += (str((Element_id)).strip("''"))
-                loop_string += (",")
-                loop_string2 = loop_string[:-1]
-            print(loop_string2, "),",ifcbuildingid,");")
 
+    if (ifcsurfaceid_list):
+
+        # print("#"+str(next(counter))," = IFCRELAGGREGATES (",guid(),", #102, $, $, ",ifcprojectid,", (", ifcbuildingid,"));")
+        # print("#"+str(next(counter))," = IFCRELCONTAINEDINSPATIALSTRUCTURE (",guid(),", #102, $, $, (", end=' ')
+        loop_string = ""
+        for Element_id in ifcsurfaceid_list:
+            loop_string += (str((Element_id)).strip("''"))
+            loop_string += (",")
+            loop_string2 = loop_string[:-1]
+        # print(loop_string2, "),",ifcbuildingid,");")
+
+        text = "\n#{id_1} = IFCRELAGGREGATES ( {guid_1},#102, $, $, {proj_id}, ({building_id}));"
+        text += "\n#{id_2} = IFCRELCONTAINEDINSPATIALSTRUCTURE ('{guid_2}', #102, $, $, ({lstring}), {building_id};)"
+        text = text.format(
+            id_1 = next(counter),
+            id_2 = next(counter),
+            guid_1 = guid(),
+            guid_2 = guid(),
+            proj_id = ifcprojectid,
+            lstring = loop_string2,
+            building_id = ifcbuildingid
+        )
+        FILE.write(text)
 #Added material when needed by commenting the below back in
 
-        #assign material #115 to all walls
-        print("#"+str(next(counter))," = IFCRELASSOCIATESMATERIAL (",guid(),",#102,$,$,(", end=' ')
-        loop_string = ""
-        for Element_id in wall_id_list:
-            loop_string += (str((Element_id)).strip("''"))
-            loop_string += (",")
-            loop_string2 = loop_string[:-1]
-        print(loop_string2, "),#115);")
+    #assign material #115 to all walls
+    #print("#"+str(next(counter))," = IFCRELASSOCIATESMATERIAL (",guid(),",#102,$,$,(", end=' ')
+    loop_string = ""
+    for Element_id in wall_id_list:
+        loop_string += (str((Element_id)).strip("''"))
+        loop_string += (",")
+        loop_string2 = loop_string[:-1]
 
-        #assign material #116 to all roofs
-        print("#"+str(next(counter))," = IFCRELASSOCIATESMATERIAL (",guid(),",#102,$,$,(", end=' ')
-        loop_string = ""
-        for Element_id in roof_id_list:
-            loop_string += (str((Element_id)).strip("''"))
-            loop_string += (",")
-            loop_string2 = loop_string[:-1]
-        print(loop_string2, "),#116);")
+    text = "\n#{id} = IFCRELASSOCIATESMATERIAL ({guid},#102,$,$,({lstring}),#115);"
+    text = text.format(id = next(counter),guid = guid(),lstring = loop_string2)
+    FILE.write(text)
 
-        #assign material #117 to all floors
-        print("#"+str(next(counter))," = IFCRELASSOCIATESMATERIAL (",guid(),",#102,$,$,(", end=' ')
-        loop_string = ""
-        for Element_id in floor_id_list:
-            loop_string += (str((Element_id)).strip("''"))
-            loop_string += (",")
-            loop_string2 = loop_string[:-1]
-        print(loop_string2, "),#117);")
+    #assign material #116 to all roofs
+    loop_string = ""
+    for Element_id in roof_id_list:
+        loop_string += (str((Element_id)).strip("''"))
+        loop_string += (",")
+        loop_string2 = loop_string[:-1]
+    text = "\n#{id} = IFCRELASSOCIATESMATERIAL ({guid},#102,$,$,({lstring}),#116);"
+    text = text.format(id=next(counter), guid=guid(), lstring=loop_string2)
+    FILE.write(text)
 
-        #assign material #118 to all ground
-        print("#"+str(next(counter))," = IFCRELASSOCIATESMATERIAL (",guid(),",#102,$,$,(", end=' ')
-        loop_string = ""
-        for Element_id in ground_id_list:
-            loop_string += (str((Element_id)).strip("''"))
-            loop_string += (",")
-            loop_string2 = loop_string[:-1]
-        print(loop_string2, "),#118);")
+    #assign material #117 to all floors
+    loop_string = ""
+    for Element_id in floor_id_list:
+        loop_string += (str((Element_id)).strip("''"))
+        loop_string += (",")
+        loop_string2 = loop_string[:-1]
+    text = "\n#{id} = IFCRELASSOCIATESMATERIAL ({guid},#102,$,$,({lstring}),#117);"
+    text = text.format(id=next(counter), guid=guid(), lstring=loop_string2)
+    FILE.write(text)
+    #assign material #118 to all ground
+    loop_string = ""
+    for Element_id in ground_id_list:
+        loop_string += (str((Element_id)).strip("''"))
+        loop_string += (",")
+        loop_string2 = loop_string[:-1]
+    text = "\n#{id} = IFCRELASSOCIATESMATERIAL ({guid},#102,$,$,({lstring}),#118);"
+    text = text.format(id=next(counter), guid=guid(), lstring=loop_string2)
+    FILE.write(text)
 
     #pipes work
     for pipe in generic:
@@ -362,48 +425,65 @@ def CityGML2IFC(path,dst):
             while pl<len(bounding_points):
             #iterate over every point in the boundary and create an elemetn from this point and store the id in ifc_id_list
                 ifc_id="#"+str(next(counter))
-                print((ifc_id)," = IFCCARTESIANPOINT ((",(str(bounding_points [pl])).strip("[]"),"));")
+                text = "{id} = IFCCARTESIANPOINT (({points}));"
+                text = text.format(id = ifc_id,points = str(bounding_points [pl]).strip("[]"))
+                FILE.write(text)
                 ifc_id_list.append(ifc_id)
                 pl=pl+1
             ifcpolyloopid="#"+str(next(counter))
-            print(ifcpolyloopid," = IFCPOLYLOOP ((", end=' ')
+
             #note; end= is used to identify what tp print after printstatment have ended
             loop_string = ""
             for Element_id in ifc_id_list:
                 loop_string += (str((Element_id)).strip("''"))
                 loop_string += (",")
                 loop_string2 = loop_string[:-1]
-            print(loop_string2, "));")
 
+            text ="\n{id} = IFCPOLYLOOP (({lstring}));"
+            text = text.format(id = ifcpolyloopid,lstring = loop_string2)
+            FILE.write(text)
             ifcfaceouterboundid="#"+str(next(counter))
-            print(ifcfaceouterboundid," = IFCFACEOUTERBOUND (",ifcpolyloopid,", .T.);")
+
+            text = "\n{id} = IFCFACEOUTERBOUND ({pl_id}, .T.);"
+            text = text.format(id = ifcfaceouterboundid,pl_id = ifcpolyloopid)
+            FILE.write(text)
 
             ifcfaceid="#"+str(next(counter))
-            print(ifcfaceid," = IFCFACE ((",ifcfaceouterboundid,"));")
+            text = "\n{id} = IFCFACE (({fo_id}));"
+            text = text.format(id=ifcfaceid, pl_id=ifcfaceouterboundid)
+            FILE.write(text)
 
             ifcopenshellid="#"+str(next(counter))
-            print(ifcopenshellid," = IFCOPENSHELL ((",ifcfaceid,"));")
+            text = "\n{id} = IFCOPENSHELL (({f_id}));"
+            text = text.format(id=ifcopenshellid, pl_id=ifcfaceid)
+            FILE.write(text)
 
             ifcshellbasedsurfacemodelid="#"+str(next(counter))
-            print(ifcshellbasedsurfacemodelid," = IFCSHELLBASEDSURFACEMODEL ((",ifcopenshellid,"));")
+            text = "\n{id} = IFCSHELLBASEDSURFACEMODEL (({os_id}));"
+            text = text.format(id=ifcshellbasedsurfacemodelid, os_id=ifcopenshellid)
+            FILE.write(text)
 
             ifcshaperepresentationid="#"+str(next(counter))
-            print(ifcshaperepresentationid," = IFCSHAPEREPRESENTATION ($,'Body','SurfaceModel',(",ifcshellbasedsurfacemodelid,"));")
+            text = "\n{id} = IFCSHAPEREPRESENTATION ($,'Body','SurfaceModel',({id_2}));"
+            text = text.format(id=ifcshaperepresentationid, id_2=ifcshellbasedsurfacemodelid)
+            FILE.write(text)
 
             ifcproductdefiniteshapeid="#"+str(next(counter))
-            print(ifcproductdefiniteshapeid," = IFCPRODUCTDEFINITIONSHAPE ($, $, (",ifcshaperepresentationid,"));")
+            text = "\n{id} = IFCPRODUCTDEFINITIONSHAPE ($, $, ({id_2}));"
+            text = text.format(id=ifcproductdefiniteshapeid, id_2=ifcshaperepresentationid)
+            FILE.write(text)
 
-            print("#" + str(next(counter)),"=IFCBUILDINGELEMENTPROXY(",guid(),",#102,'Test extrude',$,$,#119,",ifcproductdefiniteshapeid,",$,$);")
-    print("\n"
-    "\nENDSEC;"
-    "\nEND-ISO-10303-21;")
+            text = "\n#{id} = IFCBUILDINGELEMENTPROXY( guid},#102,'Test extrude',$,$,#119,{id_2},$,$);"
+            text = text.format(id =next(counter),guid = guid(),id_2 = ifcproductdefiniteshapeid)
+            FILE.write(text)
 
-    FILE.write("")
+    text = "\n\nENDSEC;\nEND-ISO-10303-21;\n"
+    FILE.write(text)
     FILE.close()
 
 if __name__ == "__main__":
     # path="complete_city_mpdel_with_pipes_reprojected.gml"
-    path = "Source.gml"
+    path = "StuKu_UR2_LoD2_Ludwigshafen.gml"
     # path="new.gml"
     # path="1.gml"
     # path="complete_city_mpdel_with_pipes_reprojected.gml"
