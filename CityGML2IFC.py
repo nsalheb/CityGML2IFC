@@ -97,6 +97,7 @@ def find_max_point(l):
 def move_to_local(reference_point, l):
     # will convert list of points into local coordinates by subtracting the local point value from them
     local_points_list = []
+    #tranformed_points = l
     tranformed_points = []
     for point in l:
         tranformed_points.append(transform_coordinates_db(point))
@@ -177,7 +178,7 @@ def add_address(building, building_id):
 
         id_list.append(tupl[0])
         add_single_value(tupl[0], tag, value)
-    add_pset(id_list, building_id, "address")
+    add_pset(id_list, building_id, "Adresse")
 
     building_name = "{},{}".format(text_dict["ThoroughfareName"][1], text_dict["ThoroughfareNumber"][1])
     return building_name
@@ -262,8 +263,42 @@ def import_namespace(root):
 
     return ns_dict
 
+def write_header(FILE):
+    dmy = time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(os.path.getmtime(path)))
+    # dmys will print the current time in IFC compatible formay
+    dmys = "'" + dmy + "'"
+    text = """ISO - 10303 - 21;
+HEADER;
+FILE_DESCRIPTION(('ViewDefinition[CoordinationView_V2.0]'), '2;1');
+FILE_NAME('{filename}', {dmys});
+FILE_SCHEMA(('IFC2X3'));
+ENDSEC;
+DATA;
 
-def CityGML2IFC(path, dst):
+# 101 = IFCORGANIZATION ($, 'MSC_Geomatics', 'TU_Delft', $, $); 
+# 104 = IFCPERSON ($, 'Nebras_salheb', 'TU_Delft', $, $, $, $, $);
+# 103 = IFCPERSONANDORGANIZATION (#104, #101, $);
+# 105 = IFCAPPLICATION (#101, 'CityGML2IFC', 'CityGML2IFC', 'CityGML2IFC');
+# 102 = IFCOWNERHISTORY (#103, #105, .READWRITE., .NOCHANGE., $, $, $, 1528899117);
+# 108 = IFCAXIS2PLACEMENT3D (#109, #110, #111);
+# 109 = IFCCARTESIANPOINT ((0., 0., 0.));
+# 110 = IFCDIRECTION ((0., 0., 1.)); 
+# 111 = IFCDIRECTION ((1., 0., 0.)); 
+# 112 = IFCDIRECTION ((1., 0., 0.)); 
+# 107 = IFCGEOMETRICREPRESENTATIONCONTEXT ($, 'Model', 3, 1.E-005, #108, #112);
+# 114 = IFCSIUNIT (*, .LENGTHUNIT., $, .METRE.); 
+# 113 = IFCUNITASSIGNMENT ((#114));
+# 115 = IFCMATERIAL('K01-1');
+# 116 = IFCMATERIAL('K01-2');
+# 117 = IFCMATERIAL('K01-3');  
+# 118 = IFCMATERIAL('K01-4');
+# 119 = IFCLOCALPLACEMENT($,#108);
+"""
+    text = text.format(filename=FILE.name,
+                       dmys=dmys,)
+    FILE.write(text)
+
+def CityGML2IFC(path, dst,reference_point_db_ref = None):
     global FILE
     global ns_dict
     global counter
@@ -276,9 +311,8 @@ def CityGML2IFC(path, dst):
 
     ns_dict = import_namespace(root)
 
-    dmy = time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(os.path.getmtime(path)))
-    # dmys will print the current time in IFC compatible formay
-    dmys = "'" + dmy + "'"
+
+
 
     cityObjects = []
     buildings = []
@@ -306,12 +340,15 @@ def CityGML2IFC(path, dst):
     pos2 = tree.findall('.//{%s}posList' % ns_dict["ns_gml"])
     for pos in pos2:
         x = ([float(val) for val in (pos.text).strip().split(' ')])
-        # points_list_complete.append((x)[:-3])
         points_list_complete.append(x)
 
     reference_point = find_reference_point(points_list_complete)
     reference_point_wgs84 = get_global_coordinates(reference_point[0], reference_point[1], reference_point[2])
-    reference_point_db_ref = transform_coordinates_db(reference_point)
+
+    if reference_point_db_ref is None:
+        reference_point_db_ref = transform_coordinates_db(reference_point)
+
+
 
     max_point = find_max_point(points_list_complete)
     max_point_wgs84 = get_global_coordinates(max_point[0], max_point[1], max_point[2])
@@ -323,44 +360,17 @@ def CityGML2IFC(path, dst):
     ground_id_list = []
     roof_id_list = []
     floor_id_list = []
-
-    text = """ISO-10303-21;
-HEADER;
-FILE_DESCRIPTION(('ViewDefinition[CoordinationView_V2.0]'), '2;1');
-FILE_NAME ('{filename}',{dmys});
-FILE_SCHEMA (('IFC2X3'));
-ENDSEC;
-DATA;
-#101 = IFCORGANIZATION ($, 'MSC_Geomatics', 'TU_Delft', $, $); 
-#104 = IFCPERSON ($, 'Nebras_salheb', 'TU_Delft', $, $, $, $, $);
-#103 = IFCPERSONANDORGANIZATION (#104, #101, $);
-#105 = IFCAPPLICATION (#101, 'CityGML2IFC', 'CityGML2IFC', 'CityGML2IFC');
-#102 = IFCOWNERHISTORY (#103, #105, .READWRITE., .NOCHANGE., $, $, $, 1528899117);
-#108 = IFCAXIS2PLACEMENT3D (#109, #110, #111);
-#109 = IFCCARTESIANPOINT ((0., 0., 0.));
-#110 = IFCDIRECTION ((0., 0., 1.)); 
-#111 = IFCDIRECTION ((1., 0., 0.)); 
-#112 = IFCDIRECTION ((1., 0., 0.)); 
-#107 = IFCGEOMETRICREPRESENTATIONCONTEXT ($, 'Model', 3, 1.E-005, #108, #112);
-#114 = IFCSIUNIT (*, .LENGTHUNIT., $, .METRE.); 
-#113 = IFCUNITASSIGNMENT ((#114));
-#115 = IFCMATERIAL('K01-1');
-#116 = IFCMATERIAL('K01-2');
-#117 = IFCMATERIAL('K01-3');  
-#118 = IFCMATERIAL('K01-4');
-#119 = IFCLOCALPLACEMENT($,#108);
-#120 = IFCCARTESIANPOINT (({x_pos}, {y_pos}, {z_pos}));
-#121 = IFCAXIS2PLACEMENT3D(#120,$,$);
-#122 = IFCLOCALPLACEMENT($,#121);
-#123 = IFCCARTESIANPOINT ((0, 0, 0));
-#124 = IFCAXIS2PLACEMENT3D(#123,$,$);
-#125 = IFCLOCALPLACEMENT(#122,#124);
+    write_header(FILE)
+    text = """# 120 = IFCCARTESIANPOINT (({x_pos}, {y_pos}, {z_pos}));
+# 121 = IFCAXIS2PLACEMENT3D(#120,$,$);
+# 122 = IFCLOCALPLACEMENT($,#121);
+# 123 = IFCCARTESIANPOINT ((0, 0, 0));
+# 124 = IFCAXIS2PLACEMENT3D(#123,$,$);
+# 125 = IFCLOCALPLACEMENT(#122,#124);
 {ifcprojectid} = IFCPROJECT ({project_guid}, #102, 'core:CityModel', '', $, $, $, (#107), #113);
-{ifcsiteid} = IFCSITE ({site_guid}, #102, 'Apolda', 'Glockenstadt Apolda', 'LandUse', #122, $, $, .ELEMENT.,{max_point},{reference_point}, $, $, $);
+{ifcsiteid} = IFCSITE ({site_guid}, #102, 'Studernheim_TRANS', 'Beschreibung Studernheim', 'LandUse', #122, $, $, .ELEMENT.,{max_point},{reference_point}, $, $, $);
 #{id_1} = IFCRELAGGREGATES ( {guid_1},#102, $, $, {ifcprojectid}, ({ifcsiteid}));"""
-    text = text.format(filename=os.path.basename(path),
-                       dmys=dmys,
-                       ifcprojectid=ifcprojectid,
+    text = text.format(ifcprojectid=ifcprojectid,
                        ifcsiteid=ifcsiteid,
                        project_guid=guid(),
                        site_guid=guid(),
@@ -375,8 +385,8 @@ DATA;
     FILE.write(text)
 
     for building_int, building in enumerate(
-            progressBar(buildings, prefix='Progress:', suffix='Complete', length=50, decimals=3)):
-        ifcbuildingid = "#" + create_id()
+            progressBar(buildings, prefix='Progress:', suffix='Complete', length=50, decimals=2)):
+        ifcbuildingid = create_id()
         building_name = add_address(building, ifcbuildingid)
         text = "\n{id} = IFCBUILDING ({guid}, #102, '{building_name}', $, $, $, $, $, $, $, $, $);"
         text = text.format(id=ifcbuildingid, guid=guid(), building_name=building_name)
@@ -611,5 +621,7 @@ if __name__ == "__main__":
     # path="small_pipe_reprojected.gml"
     # path="new_ground_solid_removed.gml"
     # path="Ground.gml"
-    dst = "Result.ifc"
-    CityGML2IFC(path, dst)
+    dst = "Result_with_transform.ifc"
+
+    reference_point = (3454000,5486000,0)
+    CityGML2IFC(path, dst,reference_point)
