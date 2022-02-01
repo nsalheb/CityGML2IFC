@@ -123,12 +123,12 @@ def transform_coordinates_db(point_list):
 
     x1 = point_list[0]
     y1 = point_list[1]
-    z = point_list[2]
+    z1 = point_list[2]
     in_proj = CRS.from_epsg(25832)  # ETRS89_UTM32
     out_proj = CRS.from_epsg(5683)  # DB_REF / 3-degree Gauss-Kruger zone 3
     transformer = Transformer.from_crs(in_proj, out_proj)
-    x2, y2 = transformer.transform(x1, y1)
-    return (x2, y2, z)
+    x2, y2, z2 = transformer.transform(x1, y1,z1)
+    return (x2, y2, z2)
 
 
 def chunks(l, n):
