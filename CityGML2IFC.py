@@ -394,9 +394,7 @@ def CityGML2IFC(path, dst,reference_point_db_ref = None):
             progressBar(buildings, prefix='Progress:', suffix='Complete', length=50, decimals=2)):
         ifcbuildingid = create_id()
         building_name = add_address(building, ifcbuildingid)
-        text = "\n{id} = IFCBUILDING ({guid}, #102, '{building_name}', $, $, $, $, $, $, $, $, $);"
-        text = text.format(id=ifcbuildingid, guid=guid(), building_name=building_name)
-        FILE.write(text)
+
 
         ifcsurfaceid_list = []
         BoundedBy = building.findall('.//{%s}boundedBy' % ns_dict["ns_bldg"])
