@@ -279,6 +279,7 @@ FILE_DESCRIPTION(('ViewDefinition[CoordinationView_V2.0]'), '2;1');
 FILE_NAME('{filename}', {dmys});
 FILE_SCHEMA(('IFC2X3'));
 ENDSEC;
+
 DATA;
 #101 = IFCORGANIZATION ($, 'DB_Netz', 'DB_Netz Abteilung Karlsruhe', $, $); 
 #104 = IFCPERSON ($, 'Mellüh', 'Christoph', $, $, $, 'Werkstudent', '99510 Apolda');
