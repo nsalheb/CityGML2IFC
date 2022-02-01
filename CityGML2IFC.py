@@ -1,6 +1,7 @@
 import xml.etree.ElementTree as ET
 import os
 import time
+import datetime
 import itertools
 import numpy
 import uuid
@@ -267,35 +268,40 @@ def write_header(FILE):
     dmy = time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(os.path.getmtime(path)))
     # dmys will print the current time in IFC compatible formay
     dmys = "'" + dmy + "'"
-    text = """ISO - 10303 - 21;
+
+    t1 = datetime.datetime(1970, 1, 1)
+    t2 = datetime.datetime.now()
+    tdif = t2 - t1
+
+    text = """ISO-10303-21;
 HEADER;
 FILE_DESCRIPTION(('ViewDefinition[CoordinationView_V2.0]'), '2;1');
 FILE_NAME('{filename}', {dmys});
 FILE_SCHEMA(('IFC2X3'));
 ENDSEC;
 DATA;
-
-# 101 = IFCORGANIZATION ($, 'MSC_Geomatics', 'TU_Delft', $, $); 
-# 104 = IFCPERSON ($, 'Nebras_salheb', 'TU_Delft', $, $, $, $, $);
-# 103 = IFCPERSONANDORGANIZATION (#104, #101, $);
-# 105 = IFCAPPLICATION (#101, 'CityGML2IFC', 'CityGML2IFC', 'CityGML2IFC');
-# 102 = IFCOWNERHISTORY (#103, #105, .READWRITE., .NOCHANGE., $, $, $, 1528899117);
-# 108 = IFCAXIS2PLACEMENT3D (#109, #110, #111);
-# 109 = IFCCARTESIANPOINT ((0., 0., 0.));
-# 110 = IFCDIRECTION ((0., 0., 1.)); 
-# 111 = IFCDIRECTION ((1., 0., 0.)); 
-# 112 = IFCDIRECTION ((1., 0., 0.)); 
-# 107 = IFCGEOMETRICREPRESENTATIONCONTEXT ($, 'Model', 3, 1.E-005, #108, #112);
-# 114 = IFCSIUNIT (*, .LENGTHUNIT., $, .METRE.); 
-# 113 = IFCUNITASSIGNMENT ((#114));
-# 115 = IFCMATERIAL('K01-1');
-# 116 = IFCMATERIAL('K01-2');
-# 117 = IFCMATERIAL('K01-3');  
-# 118 = IFCMATERIAL('K01-4');
-# 119 = IFCLOCALPLACEMENT($,#108);
+#101 = IFCORGANIZATION ($, 'DB_Netz', 'DB_Netz Abteilung Karlsruhe', $, $); 
+#104 = IFCPERSON ($, 'Mellüh', 'Christoph', $, $, $, 'Werkstudent', '99510 Apolda');
+#103 = IFCPERSONANDORGANIZATION (#104, #101, $);
+#105 = IFCAPPLICATION (#101, 'CityGML2IFC', 'CityGML2IFC', 'CityGML2IFC');
+#102 = IFCOWNERHISTORY (#103, #105, .READWRITE., .NOCHANGE., $, $, $,  {creation_date});
+#108 = IFCAXIS2PLACEMENT3D (#109, #110, #111);
+#109 = IFCCARTESIANPOINT ((0., 0., 0.));
+#110 = IFCDIRECTION ((0., 0., 1.)); 
+#111 = IFCDIRECTION ((1., 0., 0.)); 
+#112 = IFCDIRECTION ((1., 0., 0.)); 
+#107 = IFCGEOMETRICREPRESENTATIONCONTEXT ($, 'Model', 3, 1.E-005, #108, #112);
+#114 = IFCSIUNIT (*, .LENGTHUNIT., $, .METRE.); 
+#113 = IFCUNITASSIGNMENT ((#114));
+#115 = IFCMATERIAL('K01-1');
+#116 = IFCMATERIAL('K01-2');
+#117 = IFCMATERIAL('K01-3');  
+#118 = IFCMATERIAL('K01-4');
+#119 = IFCLOCALPLACEMENT($,#108);
 """
     text = text.format(filename=FILE.name,
-                       dmys=dmys,)
+                       dmys=dmys,
+                       creation_date = int(tdif.total_seconds()))
     FILE.write(text)
 
 def CityGML2IFC(path, dst,reference_point_db_ref = None):
@@ -303,7 +309,7 @@ def CityGML2IFC(path, dst,reference_point_db_ref = None):
     global ns_dict
     global counter
     tree = ET.parse(path)
-    counter = itertools.count(1000)
+    counter = itertools.count(10000)
     # counter is used to createa a hashtaged unique id with an incremintal value starting from the value given above
 
     root = tree.getroot()
@@ -361,13 +367,13 @@ def CityGML2IFC(path, dst,reference_point_db_ref = None):
     roof_id_list = []
     floor_id_list = []
     write_header(FILE)
-    text = """# 120 = IFCCARTESIANPOINT (({x_pos}, {y_pos}, {z_pos}));
-# 121 = IFCAXIS2PLACEMENT3D(#120,$,$);
-# 122 = IFCLOCALPLACEMENT($,#121);
-# 123 = IFCCARTESIANPOINT ((0, 0, 0));
-# 124 = IFCAXIS2PLACEMENT3D(#123,$,$);
-# 125 = IFCLOCALPLACEMENT(#122,#124);
-{ifcprojectid} = IFCPROJECT ({project_guid}, #102, 'core:CityModel', '', $, $, $, (#107), #113);
+    text = """#120 = IFCCARTESIANPOINT (({x_pos}, {y_pos}, {z_pos}));
+#121 = IFCAXIS2PLACEMENT3D(#120,$,$);
+#122 = IFCLOCALPLACEMENT($,#121);
+#123 = IFCCARTESIANPOINT ((0, 0, 0));
+#124 = IFCAXIS2PLACEMENT3D(#123,$,$);
+#125 = IFCLOCALPLACEMENT(#122,#124);
+{ifcprojectid} = IFCPROJECT ({project_guid}, #102, 'Citygml Import', 'This is File was created by transforming a cityGML', $, $,'ENTWURF', (#107), #113);
 {ifcsiteid} = IFCSITE ({site_guid}, #102, 'Studernheim_TRANS', 'Beschreibung Studernheim', 'LandUse', #122, $, $, .ELEMENT.,{max_point},{reference_point}, $, $, $);
 #{id_1} = IFCRELAGGREGATES ( {guid_1},#102, $, $, {ifcprojectid}, ({ifcsiteid}));"""
     text = text.format(ifcprojectid=ifcprojectid,
@@ -504,9 +510,13 @@ def CityGML2IFC(path, dst,reference_point_db_ref = None):
                     roof_id_list.append(ifcsurfaceid)
 
         if (ifcsurfaceid_list):
-            text = "\n#{id_1} = IFCRELAGGREGATES ( {guid_1},#102, $, $, {site_id}, ({building_id}));"
+            text= "\n{id_0} = IFCBUILDING ({guid_0}, #102, '{building_name}', $, $, $, $, $, $, $, $, $);"
+            text+= "\n#{id_1} = IFCRELAGGREGATES ( {guid_1},#102, $, $, {site_id}, ({building_id}));"
             text += "\n#{id_2} = IFCRELCONTAINEDINSPATIALSTRUCTURE ({guid_2}, #102, $, $, ({lstring}), {building_id});"
             text = text.format(
+                id_0 =ifcbuildingid,
+                guid_0 =guid(),
+                building_name=building_name,
                 id_1=next(counter),
                 id_2=next(counter),
                 guid_1=guid(),
